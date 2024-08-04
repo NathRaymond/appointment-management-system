@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/styles.css">
+    <title>Edit Appointment</title>
+</head>
+
+<body>
+    <header>
+        <h1>Edit Appointment</h1>
+        <nav>
+            <a href="/">Home</a>
+            <a href="/appointments/new">New Appointment</a>
+        </nav>
+    </header>
+    <main>
+        <section>
+            <h2>Update Appointment</h2>
+            <form id="appointment-form-edit">
+                <input type="hidden" id="appointment-id" name="id">
+
+                <label for="title">Title:</label>
+                <input type="text" id="title" name="title" required>
+
+                <label for="description">Description:</label>
+                <textarea id="description" name="description" required></textarea>
+
+                <label for="date">Date:</label>
+                <input type="date" id="date" name="date" required>
+
+                <label for="time">Time:</label>
+                <input type="time" id="time" name="time" required>
+
+                <button type="submit">Update Appointment</button>
+            </form>
+            <div id="message"></div>
+        </section>
+    </main>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const pathParts = window.location.pathname.split('/');
+            const id = pathParts[pathParts.length - 1]; // Get ID from URL path
+
+            if (id && id !== 'edit') {
+                try {
+                    console.log(`Fetching appointment with ID: ${id}`); // Log for debugging
+                    const response = await fetch(`/appointments/${id}`);
+
+                    if (!response.ok) throw new Error('Network response was not ok.');
+
+                    const appointment = await response.json();
+                    console.log('Fetched appointment data:', appointment); // Log for debugging
+
+                    if (appointment) {
+                        document.getElementById('appointment-id').value = appointment._id;
+                        document.getElementById('title').value = appointment.title;
+                        document.getElementById('description').value = appointment.description;
+                        document.getElementById('date').value = new Date(appointment.date).toISOString().split('T')[0];
+                        document.getElementById('time').value = appointment.time;
+                    } else {
+                        document.getElementById('message').textContent = 'Appointment not found.';
+                    }
+                } catch (error) {
+                    console.error('Error fetching appointment:', error);
+                    document.getElementById('message').textContent = 'Error fetching appointment data.';
+                }
+            } else {
+                // If the ID is 'new' or invalid, initialize form for creating a new appointment
+                document.getElementById('message').textContent = 'Creating a new appointment.';
+            }
+        });
+
+        document.getElementById('appointment-form-edit').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await fetch(`/appointments/edit/${data.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title: data.title,
+                        description: data.description,
+                        date: data.date,
+                        time: data.time
+                    })
+                });
+
+                const result = await response.json();
+                document.getElementById('message').textContent = result.message;
+
+                if (response.ok) {
+                    setTimeout(() => { window.location.href = '/'; }, 2000); // Redirect after 2 seconds
+                }
+            } catch (error) {
+                document.getElementById('message').textContent = 'Error updating appointment.';
+                console.error('Error:', error);
+            }
+        });
+    </script>
+</body>
+
+</html>

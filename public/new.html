@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/styles.css">
+    <title>New Appointment</title>
+</head>
+
+<body>
+    <header>
+        <h1>Create New Appointment</h1>
+        <nav>
+            <a href="/">Home</a>
+            <a href="/appointments/new">Appointments</a>
+        </nav>
+    </header>
+    <main>
+        <section>
+            <h2>New Appointment Form</h2>
+            <form id="appointment-form">
+                <label for="title">Title:</label>
+                <input type="text" id="title" name="title" required>
+
+                <label for="description">Description:</label>
+                <textarea id="description" name="description" required></textarea>
+
+                <label for="date">Date:</label>
+                <input type="date" id="date" name="date" required>
+
+                <label for="time">Time:</label>
+                <input type="time" id="time" name="time" required>
+
+                <button type="submit">Create Appointment</button>
+            </form>
+            <div id="message"></div>
+        </section>
+    </main>
+    <script>
+        document.getElementById('appointment-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await fetch('/appointments/new', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                document.getElementById('message').textContent = result.message;
+
+                if (response.ok) {
+                    setTimeout(() => { window.location.href = '/'; }, 2000); // Redirect after 2 seconds
+                }
+            } catch (error) {
+                document.getElementById('message').textContent = 'Error creating appointment.';
+                console.error('Error:', error);
+            }
+        });
+    </script>
+</body>
+
+</html>
